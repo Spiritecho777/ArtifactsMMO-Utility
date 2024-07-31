@@ -7,11 +7,13 @@
         mc:Ignorable="d"
         Title="ArtifactsMMO Utility" Background="LightGray" Height="350" Width="500" ResizeMode="NoResize">
     <Grid>
-        <Label x:Name="Account_name" Height="25" Width="100"/>
-        <Button x:Name="Fight" Content="Combat" HorizontalAlignment="Left" Height="25" Margin="20,120,0,0" VerticalAlignment="Top" Width="70" Click="Fight_Click"/>
-        <Button x:Name="FightLoop" Content="Combat Continue" HorizontalAlignment="Left" Height="25" FontSize="8" Margin="100,120,0,0" VerticalAlignment="Top" Width="70" Click="FightLoop_Click"/>
-        <Button x:Name="Recolt" Content="Recolte" HorizontalAlignment="Left" Height="25" Margin="20,150,0,0" VerticalAlignment="Top" Width="70" Click="Recolt_Click"/>
-        <Button x:Name="RecoltLoop" Content="Recolte Continue" HorizontalAlignment="Left" Height="25" FontSize="8" Margin="100,150,0,0" VerticalAlignment="Top" Width="70" Click="RecoltLoop_Click"/>
-        <Button x:Name="Connect" Content="Connection" HorizontalAlignment="Left" Height="25" Margin="400,280,0,0" VerticalAlignment="Top" Width="70" Click="Connect_Click"/>
+        <Label x:Name="Account_name" FontSize="20" Padding="0" FontWeight="Bold" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="25" Width="150"/>
+        <ComboBox x:Name="ListOfPlayer" HorizontalAlignment="Left" Height="25" Margin="180,10,0,0" VerticalAlignment="Top" Width="150" SelectionChanged="Change_Player"/>
+        <Button x:Name="FightLoop" Content="Combat Continue" Background="Red" HorizontalAlignment="Left" Height="25" FontSize="8" Margin="10,120,0,0" VerticalAlignment="Top" Width="70" Click="FightLoop_Click"/>
+        <Button x:Name="RecoltLoop" Content="Recolte Continue" Background="Red" HorizontalAlignment="Left" Height="25" Margin="90,120,0,0" FontSize="8" VerticalAlignment="Top" Width="70" Click="RecolteLoop"/>
+        <Label x:Name="Logs"  HorizontalAlignment="Left" Height="35" FontSize="9" Margin="10,240,0,0" VerticalAlignment="Top" Width="460">
+            <TextBlock x:Name="LogsText" TextWrapping="Wrap"/>
+        </Label>
+        <!--<Button x:Name="Connect" Content="Connection" HorizontalAlignment="Left" Height="25" Margin="400,280,0,0" VerticalAlignment="Top" Width="70" Click="Connect_Click"/>-->
     </Grid>
 </Window>
