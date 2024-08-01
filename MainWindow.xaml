@@ -10,10 +10,11 @@
         <Label x:Name="Account_name" FontSize="20" Padding="0" FontWeight="Bold" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="25" Width="150"/>
         <ComboBox x:Name="ListOfPlayer" HorizontalAlignment="Left" Height="25" Margin="180,10,0,0" VerticalAlignment="Top" Width="150" SelectionChanged="Change_Player"/>
         <Button x:Name="FightLoop" Content="Combat Continue" Background="Red" HorizontalAlignment="Left" Height="25" FontSize="8" Margin="10,120,0,0" VerticalAlignment="Top" Width="70" Click="FightLoop_Click"/>
-        <Button x:Name="RecoltLoop" Content="Recolte Continue" Background="Red" HorizontalAlignment="Left" Height="25" Margin="90,120,0,0" FontSize="8" VerticalAlignment="Top" Width="70" Click="RecolteLoop"/>
+        <Button x:Name="RecoltLoop" Content="Recolte Continue" Background="Red" HorizontalAlignment="Left" Height="25" Margin="90,120,0,0" FontSize="8" VerticalAlignment="Top" Width="70" Click="RecolteLoop_Click"/>
         <Label x:Name="Logs"  HorizontalAlignment="Left" Height="35" FontSize="9" Margin="10,240,0,0" VerticalAlignment="Top" Width="460">
             <TextBlock x:Name="LogsText" TextWrapping="Wrap"/>
         </Label>
-        <!--<Button x:Name="Connect" Content="Connection" HorizontalAlignment="Left" Height="25" Margin="400,280,0,0" VerticalAlignment="Top" Width="70" Click="Connect_Click"/>-->
+        <Button x:Name="Key" HorizontalAlignment="Left" Height="25" Margin="440,10,0,0" VerticalAlignment="Top" Width="25" Click="Key_click"/>
+        <CheckBox x:Name="AutoCheck" Content="Vente automatique" FontSize="9" HorizontalAlignment="Left" Height="15" Margin="10,100,0,0" VerticalAlignment="Top" Width="100"/>
     </Grid>
 </Window>
