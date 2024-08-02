@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ArtifactsMMO_Utility"
         mc:Ignorable="d"
-        Title="ArtifactsMMO Utility" Background="LightGray" Height="350" Width="500" ResizeMode="NoResize">
+        Title="ArtifactsMMO Utility" Background="LightGray" Height="350" Width="500" ResizeMode="CanMinimize">
     <Grid>
         <Label x:Name="Account_name" FontSize="20" Padding="0" FontWeight="Bold" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="25" Width="150"/>
         <ComboBox x:Name="ListOfPlayer" HorizontalAlignment="Left" Height="25" Margin="180,10,0,0" VerticalAlignment="Top" Width="150" SelectionChanged="Change_Player"/>
