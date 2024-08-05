@@ -1,0 +1,14 @@
+﻿<Window x:Class="ArtifactsMMO_Utility.Module.Key_Information"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ArtifactsMMO_Utility.Module"
+        mc:Ignorable="d"
+        Title="Key_Information" Height="110" Width="200" WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False">
+    <Grid>
+        <Label Content="Enter Key" HorizontalAlignment="Left" Height="20" Margin="10,20,0,0" VerticalAlignment="Top" Padding="0" Width="70"/>
+        <Button x:Name="Confirm" Content="Valider" HorizontalAlignment="Left" Height="20" Margin="140,70,0,0" VerticalAlignment="Top" Width="50" Click="Confirm_Click"/>
+        <TextBox x:Name="Info_Key" HorizontalAlignment="Left" Height="25" Margin="10,40,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="180"/>
+    </Grid>
+</Window>

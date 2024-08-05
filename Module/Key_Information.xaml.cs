@@ -12,7 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace ArtifactsMMO_Utility
+namespace ArtifactsMMO_Utility.Module
 {
     public partial class Key_Information : Window
     {

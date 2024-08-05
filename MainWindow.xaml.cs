@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ArtifactsMMO_Utility.Module;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -19,6 +20,8 @@ using System.Windows.Markup;
 using System.Text.Json.Nodes;
 using System.Security.Policy;
 using System.Runtime.InteropServices;
+using System.Windows.Documents.DocumentStructures;
+using System.Diagnostics;
 
 namespace ArtifactsMMO_Utility
 {
@@ -31,6 +34,7 @@ namespace ArtifactsMMO_Utility
         private string server = "https://api.artifactsmmo.com";
         private string token;
         private string character;
+        private string selectedPlayer;
         
         private int PositionX;
         private int PositionY;
@@ -64,6 +68,13 @@ namespace ArtifactsMMO_Utility
         }
 
         #region Connection Serveur
+        private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+
+            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+            e.Handled = true;
+        }
+
         private void InfoKey()
         {
             key_Information.ShowDialog();
@@ -112,7 +123,7 @@ namespace ArtifactsMMO_Utility
                                 {
                                     PlayerNames = nameElement.GetString(),
                                     Task = "none"
-                                });
+                                });                                 
                             }
                         }
                     }
@@ -121,7 +132,8 @@ namespace ArtifactsMMO_Utility
             }
             catch (HttpRequestException ex)
             {
-                MessageBox.Show($"Erreur lors de la requête: {ex.Message}");
+                Console.WriteLine($"Erreur lors de la requête: {ex.Message}");
+                await CreationCharacterTask();
             }
         }
         #endregion
@@ -133,14 +145,49 @@ namespace ArtifactsMMO_Utility
             InfoKey();
         }
 
-        private void Change_Player(object sender, SelectionChangedEventArgs e)
+        private async void Change_Player(object sender, SelectionChangedEventArgs e)
         {
             if (ListOfPlayer.SelectedItem != null)
             {
                 string selectedchanged = ListOfPlayer.SelectedItem.ToString();
 
                 character = selectedchanged;
-                ResetButtons();
+                try
+                {
+                    HttpResponseMessage response = await client.GetAsync(server + "/my/characters");
+                    response.EnsureSuccessStatusCode(); // Vérifie que la requête a réussi
+
+                    string responseBody = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine(responseBody);
+
+                    using (JsonDocument doc = JsonDocument.Parse(responseBody))
+                    {
+                        JsonElement root = doc.RootElement;
+
+                        if (root.TryGetProperty("data", out JsonElement dataElement) && dataElement.ValueKind == JsonValueKind.Array)
+                        {
+                            foreach (JsonElement element in dataElement.EnumerateArray())
+                            {
+                                if (element.TryGetProperty("name", out JsonElement nameElement) && nameElement.GetString() == character)
+                                {
+                                    if (element.TryGetProperty("skin", out JsonElement xElement))
+                                    {
+                                        string Skin = xElement.ToString();
+                                        string imagePath = $"pack://application:,,,/Ressources/Skin/{Skin}.png";
+                                        SkinPicture.Source = new BitmapImage(new Uri(imagePath, UriKind.Absolute));
+                                        SkinPicture.UpdateLayout();
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    ResetButtons();
+                }
+                catch (HttpRequestException ex)
+                {
+                    MessageBox.Show($"Erreur lors de la requête: {ex.Message}");
+                }
             }
             else
             {
@@ -149,19 +196,56 @@ namespace ArtifactsMMO_Utility
         }
         #endregion
 
-        #region Loop
+        #region Bouton
         private async void FightLoop_Click(object sender, RoutedEventArgs e)
         {
-            await Fight();
+            Player selectedPlayer = null;
+            foreach (var sPlayer in this.player)
+            {
+                if (ListOfPlayer.SelectedItem.ToString() == sPlayer.PlayerNames)
+                {
+                    selectedPlayer = sPlayer;
+                    break;
+                }
+            }
+            if (selectedPlayer != null)
+            {
+                await Fight(selectedPlayer);
+            }
+            else
+            {
+                MessageBox.Show("No matching player found.");
+            }
         }
 
         private async void RecolteLoop_Click(object sender, RoutedEventArgs e)
         {
-           await Recolt();
+            Player selectedPlayer = null;
+            foreach (var sPlayer in this.player)
+            {
+                if (ListOfPlayer.SelectedItem.ToString() == sPlayer.PlayerNames)
+                {
+                    selectedPlayer = sPlayer;
+                    break;
+                }
+            }
+            if (selectedPlayer != null)
+            {
+                await Recolt(selectedPlayer);
+            }
+            else
+            {
+                MessageBox.Show("No matching player found.");
+            }
+        }
+
+        private async void CharacterCreation_Click(object sender, RoutedEventArgs e)
+        {
+            await CreationCharacterTask();
         }
         #endregion
 
-        private async void VenteAuto(string selectedPlayer)
+        private async void VenteAuto(Player selectedPlayer)
         {
             #region Recuperation de position
             try
@@ -180,7 +264,7 @@ namespace ArtifactsMMO_Utility
                     {
                         foreach (JsonElement element in dataElement.EnumerateArray())
                         {
-                            if (element.TryGetProperty("name", out JsonElement nameElement) && nameElement.GetString() == selectedPlayer)
+                            if (element.TryGetProperty("name", out JsonElement nameElement) && nameElement.GetString() == selectedPlayer.PlayerNames)
                             {
                                 if (element.TryGetProperty("x", out JsonElement xElement))
                                 {
@@ -191,26 +275,6 @@ namespace ArtifactsMMO_Utility
                                 {
                                     PositionY = yElement.GetInt32();
                                 }
-
-                                /*for (int i = 1; i < 20; i++)
-                                {
-                                    if (element.TryGetProperty($"inventory_slot{i}", out JsonElement itemElement))
-                                    {
-                                        itemList.Add(itemElement.GetString());
-                                    }
-
-                                    if (element.TryGetProperty($"inventory_slot{i}_quantity", out JsonElement quantityElement))
-                                    {
-                                        if (quantityElement.GetInt32() > 50) 
-                                        { 
-                                            itemListCount.Add(50);
-                                        }
-                                        else
-                                        {
-                                            itemListCount.Add(quantityElement.GetInt32());
-                                        }
-                                    }
-                                }*/
                                 break;
                             }
                         }
@@ -223,24 +287,24 @@ namespace ArtifactsMMO_Utility
             }
             #endregion
 
-            await Move(5, 1, selectedPlayer);
+            await Move(5, 1, selectedPlayer.PlayerNames);
 
-            await FillItemList(selectedPlayer);
+            await FillItemList(selectedPlayer.PlayerNames);
 
-            await Vente(selectedPlayer);
+            await Vente(selectedPlayer.PlayerNames);
 
-            await Move(PositionX, PositionY,selectedPlayer);
+            await Move(PositionX, PositionY,selectedPlayer.PlayerNames);
 
             itemList.Clear();
             itemListCount.Clear();
 
             if (FFlag == true)
             {
-                await Fight();
+                await Fight(selectedPlayer);
             }
             if (RFlag == true)
             {
-                await Recolt();
+                await Recolt(selectedPlayer);
             }
         }
 
@@ -253,20 +317,20 @@ namespace ArtifactsMMO_Utility
             {
                 if (ListOfPlayer.SelectedItem.ToString() == sPlayer.PlayerNames)
                 {
-                    if (sPlayer.Task == "none")
+                    switch (sPlayer.Task)
                     {
-                        FightLoop.Background = new SolidColorBrush(Colors.Red);
-                        RecoltLoop.Background = new SolidColorBrush(Colors.Red);
-                    }
-                    if (sPlayer.Task == "combat")
-                    {
-                        FightLoop.Background = new SolidColorBrush(Colors.Green);
-                        RecoltLoop.Background = new SolidColorBrush(Colors.Red);
-                    }
-                    if (sPlayer.Task == "recolt")
-                    {
-                        FightLoop.Background = new SolidColorBrush(Colors.Red);
-                        RecoltLoop.Background = new SolidColorBrush(Colors.Green);
+                        case "none":
+                            FightLoop.Background = new SolidColorBrush(Colors.Red);
+                            RecoltLoop.Background = new SolidColorBrush(Colors.Red);
+                            break;
+                        case "combat":
+                            FightLoop.Background = new SolidColorBrush(Colors.Green);
+                            RecoltLoop.Background = new SolidColorBrush(Colors.Red);
+                            break;
+                        case "recolt":
+                            FightLoop.Background = new SolidColorBrush(Colors.Red);
+                            RecoltLoop.Background = new SolidColorBrush(Colors.Green);
+                            break;
                     }
                 }
             }
@@ -274,31 +338,25 @@ namespace ArtifactsMMO_Utility
         #endregion
 
         #region Task
-        private async Task Fight()
+        private async Task Fight(Player player)
         {
-            string selectedPlayer = ListOfPlayer.SelectedItem.ToString();
-            if (FFlag == true)
+            if (player.FFlag)
             {
-                FFlag = false;
+                player.FFlag = false;
+                player.Task = "none";
+                ResetButtons();
+                return;
             }
             else
             {
-                loopF = !loopF;
-                FightLoop.Background = new SolidColorBrush(isRedF ? Colors.Green : Colors.Red);
-                isRedF = !isRedF;
+                player.FFlag = true;
+                player.Task = "combat";
+                ResetButtons();
             }
 
-            foreach (var sPlayer in player)
-            {
-                if (ListOfPlayer.SelectedItem.ToString() == sPlayer.PlayerNames)
-                {
-                    sPlayer.Task = "combat";
-                }
-            }
-
-            string url = $"{server}/my/{selectedPlayer}/action/fight";
-
-            while (loopF)
+            string url = $"{server}/my/{player.PlayerNames}/action/fight";
+            Console.WriteLine(url);
+            while (player.FFlag)
             {
                 try
                 {
@@ -306,31 +364,31 @@ namespace ArtifactsMMO_Utility
 
                     if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized) // 498
                     {
-                        Logs.Content = ($"The {selectedPlayer} cannot be found on your account.");
+                        Logs.Content = ($"The {player.PlayerNames} cannot be found on your account.");
                         return;
                     }
                     else if (response.StatusCode == (System.Net.HttpStatusCode)497)
                     {
-                        Logs.Content = ($"{selectedPlayer}'s inventory is full.");
+                        Logs.Content = ($"{player.PlayerNames}'s inventory is full.");
                         if (AutoCheck.IsChecked == true)
                         {
                             FFlag = true;                            
-                            VenteAuto(selectedPlayer);
+                            VenteAuto(player);
                         }
                         return;
                     }
                     else if (response.StatusCode == (System.Net.HttpStatusCode)499)
                     {
-                        Logs.Content = ($"{selectedPlayer}'s is in cooldown.");
+                        Logs.Content = ($"{player.PlayerNames}'s is in cooldown.");
                     }
                     else if (response.StatusCode == (System.Net.HttpStatusCode)598)
                     {
-                        Logs.Content = ($"{selectedPlayer}: No monster on this map.");
+                        Logs.Content = ($"{player.PlayerNames}: No monster on this map.");
                         return;
                     }
                     else if (response.StatusCode != System.Net.HttpStatusCode.OK)
                     {
-                        Logs.Content = ($"{selectedPlayer}: An error occurred during the fight.");
+                        Logs.Content = ($"{player.PlayerNames}: An error occurred during the fight.");
                         return;
                     }
 
@@ -340,69 +398,46 @@ namespace ArtifactsMMO_Utility
                         Console.WriteLine("Raw JSON Response: " + responseBody);
 
                         // Lire le JSON directement
-                        using (JsonDocument doc = JsonDocument.Parse(responseBody))
-                        {
-                            JsonElement root = doc.RootElement;
-
-                            // Accéder aux données
-                            var fightResult = root.GetProperty("data").GetProperty("fight").GetProperty("result").GetString();
-                            var cooldownSeconds = root.GetProperty("data").GetProperty("cooldown").GetProperty("totalSeconds").GetInt32();
-
-                            // Construire le message
-                            string message = $"{selectedPlayer}: The fight ended successfully.";
-                            message += $"Cooldown: {cooldownSeconds} seconds";
-
-                            Logs.Content = (message);
-
-                            // Attendre la fin du cooldown
-                            await Task.Delay(cooldownSeconds * 1000);
-                        }
+                        await Cooldown(responseBody);
                     }
                     else
                     {
                         Console.WriteLine($"Error: {response.StatusCode}");
+                        player.FFlag = false;
+                        player.Task = "none";
+                        ResetButtons();
                     }
                 }
                 catch (HttpRequestException fe)
                 {
                     Console.WriteLine("Request error: " + fe.Message);
+                    player.FFlag = false;
+                    player.Task = "none";
+                    ResetButtons();
                 }
             }
-            foreach (var sPlayer in player)
-            {
-                if (ListOfPlayer.SelectedItem.ToString() == sPlayer.PlayerNames)
-                {
-                    sPlayer.Task = "none";
-                }
-            }
-            Logs.Content = $"{selectedPlayer} has stop";
+            Logs.Content = $"{player.PlayerNames} has stop";
         }
 
-        private async Task Recolt()
+        private async Task Recolt(Player player)
         {
-            string selectedPlayer = ListOfPlayer.SelectedItem.ToString();
-            if (RFlag == true)
+            if (player.RFlag)
             {
-                RFlag = false;
+                player.RFlag = false;
+                player.Task = "none";
+                ResetButtons();
+                return;
             }
             else
             {
-                loopR = !loopR;
-                RecoltLoop.Background = new SolidColorBrush(isRedR ? Colors.Green : Colors.Red);
-                isRedR = !isRedR;
+                player.RFlag = true;
+                player.Task = "recolt";
+                ResetButtons();
             }
 
-            foreach (var sPlayer in player)
-            {
-                if (ListOfPlayer.SelectedItem.ToString() == sPlayer.PlayerNames)
-                {
-                    sPlayer.Task = "recolt";
-                }
-            }
+            string url = $"{server}/my/{player.PlayerNames}/action/gathering";
 
-            string url = $"{server}/my/{selectedPlayer}/action/gathering";
-
-            while (loopR)
+            while (player.RFlag)
             {
                 try
                 {
@@ -410,31 +445,31 @@ namespace ArtifactsMMO_Utility
 
                     if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized) // 498
                     {
-                        Logs.Content = ($"The {selectedPlayer} cannot be found on your account.");
+                        Logs.Content = ($"The {player.PlayerNames} cannot be found on your account.");
                         return;
                     }
                     else if (response.StatusCode == (System.Net.HttpStatusCode)497)
                     {
-                        Logs.Content = ($"{selectedPlayer}'s inventory is full.");
+                        Logs.Content = ($"{player.PlayerNames}'s inventory is full.");
                         if (AutoCheck.IsChecked == true)
                         {
                             RFlag = true;
-                            VenteAuto(selectedPlayer);
+                            VenteAuto(player);
                         }
                         return;
                     }
                     else if (response.StatusCode == (System.Net.HttpStatusCode)499)
                     {
-                        Logs.Content = ($"{selectedPlayer}'s is in cooldown.");
+                        Logs.Content = ($"{player.PlayerNames}'s is in cooldown.");
                     }
                     else if (response.StatusCode == (System.Net.HttpStatusCode)493)
                     {
-                        Logs.Content = ($"{selectedPlayer}: No resource on this map.");
+                        Logs.Content = ($"{player.PlayerNames}: No resource on this map.");
                         return;
                     }
                     else if (response.StatusCode != System.Net.HttpStatusCode.OK)
                     {
-                        Logs.Content = ($"{selectedPlayer}: An error occurred while gathering the resource.");
+                        Logs.Content = ($"{player.PlayerNames}: An error occurred while gathering the resource.");
                         return;
                     }
 
@@ -444,41 +479,25 @@ namespace ArtifactsMMO_Utility
                         Console.WriteLine("Raw JSON Response: " + responseBody);
 
                         // Lire le JSON directement
-                        using (JsonDocument doc = JsonDocument.Parse(responseBody))
-                        {
-                            JsonElement root = doc.RootElement;
-
-                            // Accéder aux données
-                            //var fightResult = root.GetProperty("data").GetProperty("fight").GetProperty("result").GetString();
-                            var cooldownSeconds = root.GetProperty("data").GetProperty("cooldown").GetProperty("totalSeconds").GetInt32();
-
-                            // Construire le message
-                            string message = $"{selectedPlayer}'s successfully gathered the resource.'";
-                            message += $"Cooldown: {cooldownSeconds} seconds";
-
-                            Logs.Content = (message);
-
-                            await Task.Delay(cooldownSeconds * 1000);
-                        }
+                        await Cooldown(responseBody);
                     }
                     else
                     {
                         Console.WriteLine($"Error: {response.StatusCode}");
+                        player.RFlag = false;
+                        player.Task = "none";
+                        ResetButtons();
                     }
                 }
                 catch (HttpRequestException fe)
                 {
                     Console.WriteLine("Request error: " + fe.Message);
+                    player.RFlag = false;
+                    player.Task = "none";
+                    ResetButtons();
                 }
             }
-            foreach (var sPlayer in player)
-            {
-                if (ListOfPlayer.SelectedItem.ToString() == sPlayer.PlayerNames)
-                {
-                    sPlayer.Task = "none";
-                }
-            }
-            Logs.Content = $"{selectedPlayer} has stop";
+            Logs.Content = $"{player.PlayerNames} has stop";
         }
 
         private async Task Transformation()
@@ -506,22 +525,24 @@ namespace ArtifactsMMO_Utility
                         {
                             if (element.TryGetProperty("name", out JsonElement nameElement) && nameElement.GetString() == selectedPlayer)
                             {
-                                for (int i = 1; i < 20; i++)
+                                if (element.TryGetProperty("inventory", out JsonElement inventoryElement) && inventoryElement.ValueKind == JsonValueKind.Array)
                                 {
-                                    if (element.TryGetProperty($"inventory_slot{i}", out JsonElement itemElement))
+                                    foreach (JsonElement slotElement in inventoryElement.EnumerateArray())
                                     {
-                                        itemList.Add(itemElement.GetString());
-                                    }
+                                        if (slotElement.TryGetProperty("code", out JsonElement codeElement) &&
+                                            slotElement.TryGetProperty("quantity", out JsonElement quantityElement))
+                                        {
+                                            string code = codeElement.GetString();
+                                            int quantity = quantityElement.GetInt32();
 
-                                    if (element.TryGetProperty($"inventory_slot{i}_quantity", out JsonElement quantityElement))
-                                    {
-                                        if (quantityElement.GetInt32() > 50)
-                                        {
-                                            itemListCount.Add(50);
-                                        }
-                                        else
-                                        {
-                                            itemListCount.Add(quantityElement.GetInt32());
+                                            if (!string.IsNullOrEmpty(code))
+                                            {
+                                                itemList.Add(code);
+                                            }
+
+                                            itemListCount.Add(quantity > 50 ? 50 : quantity);
+
+                                            Console.WriteLine($"Item: {code}, Quantity: {quantity}");
                                         }
                                     }
                                 }
@@ -562,7 +583,7 @@ namespace ArtifactsMMO_Utility
                                     {
                                         price = priceSold.GetInt32();
 
-                                        url = $"{server}/my/{character}/action/ge/sell";
+                                        url = $"{server}/my/{selectedPlayer}/action/ge/sell";
                                         string item = $"{{\"code\":\"{itemList[i]}\",\"quantity\":{itemListCount[i]},\"price\":{price}}}";
                                         var item2 = new StringContent(item, Encoding.UTF8, "application/json");                                    
 
@@ -574,14 +595,7 @@ namespace ArtifactsMMO_Utility
                                             string responseBody = await response.Content.ReadAsStringAsync();
                                             Console.WriteLine(responseBody);
 
-                                            using (JsonDocument doc2 = JsonDocument.Parse(responseBody))
-                                            {
-                                                JsonElement root2 = doc2.RootElement;
-
-                                                var cooldownSeconds = root2.GetProperty("data").GetProperty("cooldown").GetProperty("totalSeconds").GetInt32();
-
-                                                await Task.Delay(cooldownSeconds * 1000);
-                                            }
+                                            await Cooldown(responseBody);
                                         }
                                         catch (Exception ex)
                                         {
@@ -622,22 +636,90 @@ namespace ArtifactsMMO_Utility
 
                 Logs.Content = $"{selectedPlayer} has move in {x},{y}";
 
-                using (JsonDocument doc = JsonDocument.Parse(responseBody))
-                {
-                    JsonElement root = doc.RootElement;
-
-                    // Accéder aux données
-                    var cooldownSeconds = root.GetProperty("data").GetProperty("cooldown").GetProperty("totalSeconds").GetInt32();
-
-                    // Attendre la fin du cooldown
-                    await Task.Delay(cooldownSeconds * 1000);
-                }
+                await Cooldown(responseBody);
             }
             catch (HttpRequestException fe)
             {
                 Console.WriteLine("Request error: " + fe.Message);
             }
         }
+
+        private async Task CreationCharacterTask()
+        {
+            CharacterCreation characterCreation = new CharacterCreation();
+            bool? result = characterCreation.ShowDialog();
+            if (result == true)
+            {
+                string newCharacterName = characterCreation.PlayerName.Text;
+                string newCharacterSkin = characterCreation.Skin;
+
+                string url = $"{server}/characters/create";
+                var options = $"{{\n  \"name\": \"{newCharacterName}\",\n  \"skin\": \"{newCharacterSkin}\"\n}}";
+                Console.WriteLine(options);
+                var content = new StringContent(options, Encoding.UTF8, "application/json");
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, url)
+                {
+                    Content = content
+                };
+
+                try
+                {
+                    System.Console.WriteLine(requestMessage.Content);
+                    HttpResponseMessage response = await client.SendAsync(requestMessage);
+                    response.EnsureSuccessStatusCode();
+                    string responseBody = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine(responseBody);
+                }
+                catch (HttpRequestException fe)
+                {
+                    Console.WriteLine("Request error: " + fe.Message);
+                }
+                //characterCreation.DialogResult = false;
+                await Connect();
+            }
+            else
+            {
+                //_ = Connect();
+            }
+        }
+
+        private async Task Cooldown(string responseBody)
+        {
+            try 
+            { 
+                using (JsonDocument doc = JsonDocument.Parse(responseBody))
+                {
+                    JsonElement root = doc.RootElement;
+
+                    // Accéder aux données
+                    var cooldownSeconds = root.GetProperty("data").GetProperty("cooldown").GetProperty("total_seconds").GetInt32();
+
+                    // Attendre la fin du cooldown
+                    await Task.Delay(cooldownSeconds * 1000);
+                }
+            }catch (HttpRequestException fe)
+            {
+                Console.WriteLine("Request error: " + fe.Message);
+            }
+        }
         #endregion
+
+        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            // Terminer l'application
+            Application.Current.Shutdown();
+        }
+
+        private async void Map_Click(object sender, RoutedEventArgs e)
+        {
+            string url = $"{server}/maps";
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            using (var response = await client.SendAsync(request))
+            {
+                response.EnsureSuccessStatusCode();
+                var body = await response.Content.ReadAsStringAsync();
+                Console.WriteLine(body);
+            }
+        }
     }
 }

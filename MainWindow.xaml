@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ArtifactsMMO_Utility"
         mc:Ignorable="d"
-        Title="ArtifactsMMO Utility" Background="LightGray" Height="350" Width="500" ResizeMode="CanMinimize">
+        Title="ArtifactsMMO Utility" Background="LightGray" Height="350" Width="500" ResizeMode="CanMinimize" Closing="MainWindow_Closing">
     <Grid>
         <Label x:Name="Account_name" FontSize="20" Padding="0" FontWeight="Bold" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="25" Width="150"/>
         <ComboBox x:Name="ListOfPlayer" HorizontalAlignment="Left" Height="25" Margin="180,10,0,0" VerticalAlignment="Top" Width="150" SelectionChanged="Change_Player"/>
@@ -14,7 +14,15 @@
         <Label x:Name="Logs"  HorizontalAlignment="Left" Height="35" FontSize="9" Margin="10,240,0,0" VerticalAlignment="Top" Width="460">
             <TextBlock x:Name="LogsText" TextWrapping="Wrap"/>
         </Label>
-        <Button x:Name="Key" HorizontalAlignment="Left" Height="25" Margin="440,10,0,0" VerticalAlignment="Top" Width="25" Click="Key_click"/>
+        <Button x:Name="AddCharacter" HorizontalAlignment="Left" Height="25" Content="+" FontSize="20" Padding="0,-5,0,0" FontWeight="Bold" Margin="340,10,0,0" VerticalAlignment="Top" Width="25" Click="CharacterCreation_Click"/>
         <CheckBox x:Name="AutoCheck" Content="Vente automatique" FontSize="9" HorizontalAlignment="Left" Height="15" Margin="10,100,0,0" VerticalAlignment="Top" Width="100"/>
+        <Button x:Name="Key" Content=""  HorizontalAlignment="Left" Height="25" Margin="440,10,0,0" VerticalAlignment="Top" Width="25" Click="Key_click"/>
+        <Image x:Name="SkinPicture" Height="50" Width="50" Margin="-430,-200,0,0"/>
+        <TextBlock x:Name="textBlock" HorizontalAlignment="Left" Height="25" Margin="10,290,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="98">
+             <Hyperlink NavigateUri="https://artifactsmmo.com/account" RequestNavigate="Hyperlink_RequestNavigate">
+                Client Link
+            </Hyperlink>
+        </TextBlock>
+        <Button x:Name="Map" HorizontalAlignment="Left" Height="25" Content="Map" FontSize="20" Padding="0,-5,0,0" FontWeight="Bold" Margin="40,200,0,0" VerticalAlignment="Top" Width="70" Click="Map_Click"/>
     </Grid>
 </Window>
