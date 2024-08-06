@@ -1,27 +1,18 @@
 ﻿using ArtifactsMMO_Utility.Module;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Text.Json;
-using System.Windows.Markup;
-using System.Text.Json.Nodes;
-using System.Security.Policy;
-using System.Runtime.InteropServices;
-using System.Windows.Documents.DocumentStructures;
 using System.Diagnostics;
+using System.Linq;
 
 namespace ArtifactsMMO_Utility
 {
@@ -29,6 +20,7 @@ namespace ArtifactsMMO_Utility
     {
         #region Variable
         HttpClient client = new HttpClient();
+        private Player _currentPlayer;
         private Key_Information key_Information = new Key_Information();
 
         private string server = "https://api.artifactsmmo.com";
@@ -152,6 +144,29 @@ namespace ArtifactsMMO_Utility
                 string selectedchanged = ListOfPlayer.SelectedItem.ToString();
 
                 character = selectedchanged;
+
+                Player currentPlayer = null;
+                foreach (var sPlayer in this.player)
+                {
+                    if (ListOfPlayer.SelectedItem.ToString() == sPlayer.PlayerNames)
+                    {
+                        currentPlayer = sPlayer;
+                        break;
+                    }
+                }
+
+                if (_currentPlayer != null)
+                {
+                    _currentPlayer.AutoSellCheck = AutoCheck.IsChecked ?? false;
+                }
+
+                _currentPlayer = currentPlayer;
+
+                if (_currentPlayer != null)
+                {
+                    AutoCheck.IsChecked = _currentPlayer.AutoSellCheck;
+                }
+
                 try
                 {
                     HttpResponseMessage response = await client.GetAsync(server + "/my/characters");
@@ -710,16 +725,80 @@ namespace ArtifactsMMO_Utility
             Application.Current.Shutdown();
         }
 
-        private async void Map_Click(object sender, RoutedEventArgs e)
+        /*private async void Map_Click(object sender, RoutedEventArgs e)
         {
-            string url = $"{server}/maps";
-            var request = new HttpRequestMessage(HttpMethod.Get, url);
-            using (var response = await client.SendAsync(request))
+            int page = 1;
+            int pageSize = 50; // Définir la taille de la page selon les capacités de l'API
+            bool hasMoreData = true;
+            List<JsonElement> allMapElements = new List<JsonElement>();
+
+            while (hasMoreData)
             {
-                response.EnsureSuccessStatusCode();
-                var body = await response.Content.ReadAsStringAsync();
-                Console.WriteLine(body);
+                string url = $"{server}/maps?page={page}&pageSize={pageSize}";
+                var request = new HttpRequestMessage(HttpMethod.Get, url);
+                using (var response = await client.SendAsync(request))
+                {
+                    response.EnsureSuccessStatusCode();
+                    var body = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine(body);
+
+                    // Parse the JSON response
+                    using (JsonDocument doc = JsonDocument.Parse(body))
+                    {
+                        JsonElement root = doc.RootElement;
+
+                        if (root.TryGetProperty("data", out JsonElement dataElement) && dataElement.ValueKind == JsonValueKind.Array)
+                        {
+                            var elements = dataElement.EnumerateArray().ToList();
+                            if (elements.Count < pageSize)
+                            {
+                                hasMoreData = false;
+                            }
+
+                            // Filter out elements where content is null or empty
+                            var filteredElements = elements
+                                .Where(element =>
+                                {
+                                    // Check for the presence and type of "content"
+                                    if (element.TryGetProperty("content", out JsonElement contentElement))
+                                    {
+                                        if (contentElement.ValueKind == JsonValueKind.String)
+                                        {
+                                            string content = contentElement.GetString();
+                                            return !string.IsNullOrWhiteSpace(content);
+                                        }
+                                        return false; // content is not a string or is null
+                                    }
+                                    return false; // "content" property is missing
+                                })
+                                .ToList();
+
+                            allMapElements.AddRange(filteredElements);
+                        }
+                        else
+                        {
+                            hasMoreData = false; // Arrêter la boucle si on ne trouve pas de "data" ou si ce n'est pas un array
+                        }
+                    }
+                }
+                page++;
             }
-        }
+
+            // Process all collected map elements
+            foreach (var element in allMapElements)
+            {
+                string name = element.TryGetProperty("name", out JsonElement nameElement) ? nameElement.GetString() : "Unknown";
+                string skin = element.TryGetProperty("skin", out JsonElement skinElement) ? skinElement.GetString() : "Unknown";
+                int x = element.TryGetProperty("x", out JsonElement xElement) ? xElement.GetInt32() : 0;
+                int y = element.TryGetProperty("y", out JsonElement yElement) ? yElement.GetInt32() : 0;
+                string content = element.TryGetProperty("content", out JsonElement contentElement) && contentElement.ValueKind == JsonValueKind.String ? contentElement.GetString() : null;
+
+                if (!string.IsNullOrEmpty(content))
+                {
+                    // Only process elements where content is not null or empty
+                    Console.WriteLine($"Name: {name}, Skin: {skin}, X: {x}, Y: {y}, Content: {content}");
+                }
+            }
+        }*/
     }
 }

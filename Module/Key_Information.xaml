@@ -8,7 +8,7 @@
         Title="Key_Information" Height="110" Width="200" WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False">
     <Grid>
         <Label Content="Enter Key" HorizontalAlignment="Left" Height="20" Margin="10,20,0,0" VerticalAlignment="Top" Padding="0" Width="70"/>
-        <Button x:Name="Confirm" Content="Valider" HorizontalAlignment="Left" Height="20" Margin="140,70,0,0" VerticalAlignment="Top" Width="50" Click="Confirm_Click"/>
+        <Button x:Name="Confirm" Content="Confirm" HorizontalAlignment="Left" Height="20" Margin="140,70,0,0" VerticalAlignment="Top" Width="50" Click="Confirm_Click"/>
         <TextBox x:Name="Info_Key" HorizontalAlignment="Left" Height="25" Margin="10,40,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="180"/>
     </Grid>
 </Window>

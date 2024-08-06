@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ArtifactsMMO_Utility.Module
+﻿namespace ArtifactsMMO_Utility.Module
 {
     public class Player
     {
@@ -18,5 +12,6 @@ namespace ArtifactsMMO_Utility.Module
         public bool loopR { get; set; }
         public bool isRedF { get; set; }
         public bool isRedR { get; set; }
+        public bool AutoSellCheck { get; set; }
     }
 }
