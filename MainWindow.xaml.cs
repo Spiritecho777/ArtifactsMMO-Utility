@@ -313,12 +313,14 @@ namespace ArtifactsMMO_Utility
             itemList.Clear();
             itemListCount.Clear();
 
-            if (FFlag == true)
+            if (selectedPlayer.FFlag == true)
             {
+                selectedPlayer.FFlag = false;
                 await Fight(selectedPlayer);
             }
-            if (RFlag == true)
+            if (selectedPlayer.RFlag == true)
             {
+                selectedPlayer.RFlag = false;
                 await Recolt(selectedPlayer);
             }
         }
@@ -355,6 +357,7 @@ namespace ArtifactsMMO_Utility
         #region Task
         private async Task Fight(Player player)
         {
+            int i = 1;
             if (player.FFlag)
             {
                 player.FFlag = false;
@@ -411,7 +414,8 @@ namespace ArtifactsMMO_Utility
                     {
                         string responseBody = await response.Content.ReadAsStringAsync();
                         Console.WriteLine("Raw JSON Response: " + responseBody);
-
+                        Logs.Content = $"{player.PlayerNames} has won ({i})";
+                        i++;
                         // Lire le JSON directement
                         await Cooldown(responseBody);
                     }
@@ -436,6 +440,7 @@ namespace ArtifactsMMO_Utility
 
         private async Task Recolt(Player player)
         {
+            int i = 1;
             if (player.RFlag)
             {
                 player.RFlag = false;
@@ -492,7 +497,8 @@ namespace ArtifactsMMO_Utility
                     {
                         string responseBody = await response.Content.ReadAsStringAsync();
                         Console.WriteLine("Raw JSON Response: " + responseBody);
-
+                        Logs.Content = $"{player.PlayerNames} has gather ({i})";
+                        i++;
                         // Lire le JSON directement
                         await Cooldown(responseBody);
                     }
@@ -579,7 +585,7 @@ namespace ArtifactsMMO_Utility
             {
                 for (int i = 0; i < itemList.Count; i++)
                 {
-                    if (!string.IsNullOrEmpty(itemList[i]))
+                    if (!string.IsNullOrEmpty(itemList[i]) && itemListCount[i] != 0)
                     {
                         string url = $"{server}/items/{itemList[i]}";
                         HttpResponseMessage responseg = await client.GetAsync(url);
