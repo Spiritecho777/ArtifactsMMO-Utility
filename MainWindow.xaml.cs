@@ -283,12 +283,12 @@ namespace ArtifactsMMO_Utility
                             {
                                 if (element.TryGetProperty("x", out JsonElement xElement))
                                 {
-                                    PositionX = xElement.GetInt32();
+                                    selectedPlayer.PositionX = xElement.GetInt32();
                                 }
 
                                 if (element.TryGetProperty("y", out JsonElement yElement))
                                 {
-                                    PositionY = yElement.GetInt32();
+                                    selectedPlayer.PositionY = yElement.GetInt32();
                                 }
                                 break;
                             }
@@ -308,7 +308,7 @@ namespace ArtifactsMMO_Utility
 
             await Vente(selectedPlayer.PlayerNames);
 
-            await Move(PositionX, PositionY,selectedPlayer.PlayerNames);
+            await Move(selectedPlayer.PositionX, selectedPlayer.PositionY,selectedPlayer.PlayerNames);
 
             itemList.Clear();
             itemListCount.Clear();
@@ -561,7 +561,10 @@ namespace ArtifactsMMO_Utility
                                                 itemList.Add(code);
                                             }
 
-                                            itemListCount.Add(quantity > 50 ? 50 : quantity);
+                                            if (quantity > 0)
+                                            {
+                                                itemListCount.Add(quantity > 50 ? 50 : quantity);
+                                            }
 
                                             Console.WriteLine($"Item: {code}, Quantity: {quantity}");
                                         }
@@ -585,7 +588,7 @@ namespace ArtifactsMMO_Utility
             {
                 for (int i = 0; i < itemList.Count; i++)
                 {
-                    if (!string.IsNullOrEmpty(itemList[i]) && itemListCount[i] != 0)
+                    if (!string.IsNullOrEmpty(itemList[i]))
                     {
                         string url = $"{server}/items/{itemList[i]}";
                         HttpResponseMessage responseg = await client.GetAsync(url);
